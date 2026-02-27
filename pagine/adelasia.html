@@ -183,9 +183,10 @@ L.tileLayer(
 ).addTo(map);
 
 fetch("../gpx/adelasia.gpx")
-
-.then(r=>r.text())
-
+.then(r=>{
+if(!r.ok) throw new Error("GPX non trovato");
+return r.text();
+})
 .then(gpx=>{
 
 const parser=new DOMParser();
