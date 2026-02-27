@@ -1,0 +1,334 @@
+c<!DOCTYPE html>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Colla San Giacomo e Base Nato | Itinerari MTB</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+
+body{
+font-family:'Inter',Arial;
+background:#d9d1c7 url("sfondo.jpg") repeat;
+margin:0;
+color:#222;
+}
+
+.container{
+max-width:950px;
+margin:40px auto;
+background:rgba(255,255,255,0.95);
+padding:35px;
+border-radius:12px;
+box-shadow:0 4px 8px rgba(0,0,0,0.2);
+}
+
+h1{
+text-align:center;
+margin-bottom:25px;
+}
+
+h2{
+font-size: 1.2em;
+text-align:center;
+color:#6b5b45;
+font-weight:normal;
+margin-top:0;
+margin-bottom:25px;
+}
+
+.descrizione{
+background:#e9e1d4;
+padding:20px;
+border-radius:10px;
+line-height:1.7;
+margin-bottom:25px;
+text-align:justify;
+}
+
+.stats{
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:15px;
+margin-bottom:25px;
+
+}
+
+.stat{
+
+background:#f3eee6;
+padding:15px;
+border-radius:8px;
+text-align:center;
+
+}
+
+.value{
+font-size:22px;
+font-weight:bold;
+}
+
+.label{
+font-size:13px;
+color:#666;
+}
+
+#map{
+height:500px;
+border-radius:10px;
+margin-bottom:20px;
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+
+#elevationChart{
+height:220px;
+}
+
+.buttons{
+text-align:center;
+margin-top:25px;
+}
+
+.btn{
+display:inline-block;
+padding:10px 20px;
+margin:5px;
+border-radius:6px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.download{
+background:#ffcc66;
+color:black;
+}
+
+.back{
+background:#006600;
+color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Colla San Giacomo e Base Nato</h1>
+
+<h2>Altare – Colla del Termine – Colla di S.Giacomo - Base Nato - Colla del Termine - Colla del Baraccone - Altare</h2>
+
+<div class="descrizione">
+
+<p>
+	<p>Il percorso illustrato, si snoda a cavallo dello spartiacque fra la costa savonese ed il suo retroterra ormai padano, in una delle zone boschive più ricche e incontaminate d’Italia dove le faggete e i castagneti sostituiscono i pini marittimi caratteristici dei primi contrafforti a ridosso del mare.</p>
+	
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<div class="value" id="dist">--</div>
+<div class="label">Distanza</div>
+</div>
+
+<div class="stat">
+<div class="value">1000 m</div>
+<div class="label">Dislivello +</div>
+</div>
+
+<div class="stat">
+<div class="value" id="quotaMax">--</div>
+<div class="label">Quota massima</div>
+</div>
+
+<div class="stat">
+<div class="value">3h30</div>
+<div class="label">Tempo</div>
+</div>
+
+</div>
+
+<div id="map"></div>
+
+<canvas id="elevationChart"></canvas>
+
+<div class="buttons">
+
+<a href="Basenato.gpx" class="btn download">
+⬇️ Scarica GPX
+</a>
+
+<a href="itinerari.html" class="btn back">
+← Torna agli itinerari
+</a>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const map=L.map('map');
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{attribution:'© OpenStreetMap'}
+).addTo(map);
+
+fetch("Basenato.gpx")
+
+.then(r=>r.text())
+
+.then(gpx=>{
+
+const parser=new DOMParser();
+const xml=parser.parseFromString(gpx,"text/xml");
+
+const pts=xml.getElementsByTagName("trkpt");
+
+let latlngs=[];
+let elevations=[];
+let distances=[];
+
+let totalDist=0;
+
+function hav(a,b){
+
+const R=6371;
+
+const dLat=(b[0]-a[0])*Math.PI/180;
+const dLon=(b[1]-a[1])*Math.PI/180;
+
+const lat1=a[0]*Math.PI/180;
+const lat2=b[0]*Math.PI/180;
+
+const x=Math.sin(dLat/2)**2+
+Math.sin(dLon/2)**2*Math.cos(lat1)*Math.cos(lat2);
+
+const c=2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+
+return R*c;
+
+}
+
+for(let i=0;i<pts.length;i++){
+
+let lat=parseFloat(pts[i].getAttribute("lat"));
+let lon=parseFloat(pts[i].getAttribute("lon"));
+
+let ele=pts[i].getElementsByTagName("ele")[0];
+let elev=ele?parseFloat(ele.textContent):0;
+
+latlngs.push([lat,lon]);
+elevations.push(elev);
+
+if(i>0){
+totalDist+=hav(latlngs[i-1],latlngs[i]);
+}
+
+distances.push(totalDist);
+
+}
+
+/* linea percorso */
+
+const poly=L.polyline(latlngs,{color:'red'}).addTo(map);
+
+map.fitBounds(poly.getBounds());
+
+/* marker partenza arrivo */
+
+L.marker(latlngs[0]).addTo(map).bindPopup("Partenza");
+
+L.marker(latlngs[latlngs.length-1]).addTo(map).bindPopup("Arrivo");
+
+/* marker dinamico */
+
+const hoverMarker=L.circleMarker(latlngs[0],{
+radius:6,
+color:"blue",
+fillColor:"blue",
+fillOpacity:1
+}).addTo(map);
+
+/* distanza totale */
+
+document.getElementById("dist").innerHTML=totalDist.toFixed(1)+" km";
+
+/* quota massima */
+
+let max=Math.max(...elevations);
+
+document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
+
+/* grafico altimetrico */
+
+const chart=new Chart(document.getElementById("elevationChart"),{
+
+type:"line",
+
+data:{
+labels:distances.map(d=>d.toFixed(1)),
+datasets:[{
+data:elevations,
+fill:true,
+tension:0.2
+}]
+},
+
+options:{
+
+plugins:{legend:{display:false}},
+
+interaction:{
+mode:'index',
+intersect:false
+},
+
+scales:{
+x:{title:{display:true,text:"Distanza (km)"}},
+y:{title:{display:true,text:"Quota (m)"}}
+},
+
+onHover:(event,elements)=>{
+
+if(elements.length>0){
+
+let i=elements[0].index;
+
+hoverMarker.setLatLng(latlngs[i]);
+
+}
+
+}
+
+}
+
+});
+
+});
+
+</script>
+
+</script>
+
+</body>
+</html>
