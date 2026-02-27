@@ -247,7 +247,7 @@ fetch("../gpx/5-ponti.gpx")
         let diff = elevations[i] - elevations[i-1];
         if(diff > soglia) gain += diff;
     }
-    document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
+    //document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
 
     const chart = new Chart(document.getElementById("elevationChart"), {
         type: "line",
