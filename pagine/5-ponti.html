@@ -144,7 +144,7 @@ color:white;
 </div>
 
 <div class="stat">
-<div class="value">1h45</div>
+<div class="value">3h30</div>
 <div class="label">Tempo</div>
 </div>
 
@@ -242,7 +242,7 @@ fetch("../gpx/5-ponti.gpx")
     document.getElementById("quotaMax").innerHTML = Math.round(max) + " m";
 
     let gain = 0;
-    const soglia = 0;	// ignora variazioni minori di n metri
+    const soglia = 2;	// ignora variazioni minori di n metri
     for (let i = 1; i < elevations.length; i++){
         let diff = elevations[i] - elevations[i-1];
         if(diff > soglia) gain += diff;
