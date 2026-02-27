@@ -13,8 +13,8 @@
 <style>
 
 body{
-font-family:Inter,Arial;
-background:#d9d1c7;
+font-family:'Inter',Arial;
+background:#d9d1c7 url("../sfondo.jpg") repeat;
 margin:0;
 color:#222;
 }
@@ -22,29 +22,32 @@ color:#222;
 .container{
 max-width:950px;
 margin:40px auto;
-background:white;
+background:rgba(255,255,255,0.95);
 padding:35px;
-border-radius:10px;
-box-shadow:0 3px 8px rgba(0,0,0,0.2);
+border-radius:12px;
+box-shadow:0 4px 8px rgba(0,0,0,0.2);
 }
 
 h1{
 text-align:center;
+margin-bottom:5px;
 }
 
 h2{
 text-align:center;
-color:#666;
+color:#6b5b45;
 font-weight:normal;
 margin-top:0;
+margin-bottom:25px;
 }
 
 .descrizione{
-background:#efe9df;
+background:#e9e1d4;
 padding:20px;
 border-radius:10px;
 line-height:1.7;
 margin-bottom:25px;
+text-align:justify;
 }
 
 .stats{
@@ -58,7 +61,7 @@ margin-bottom:25px;
 
 .stat{
 
-background:#f4f4f4;
+background:#f3eee6;
 padding:15px;
 border-radius:8px;
 text-align:center;
@@ -79,6 +82,7 @@ color:#666;
 height:500px;
 border-radius:10px;
 margin-bottom:20px;
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
 }
 
 #elevationChart{
@@ -105,7 +109,7 @@ color:black;
 }
 
 .back{
-background:#2e7d32;
+background:#006600;
 color:white;
 }
 
@@ -149,7 +153,7 @@ color:white;
 </div>
 
 <div class="stat">
-<div class="value">725 m</div>
+<div class="value" id="quotaMax">--</div>
 <div class="label">Quota massima</div>
 </div>
 
@@ -183,6 +187,11 @@ color:white;
 
 <script>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
 const map=L.map('map');
 
 L.tileLayer(
@@ -203,27 +212,9 @@ const pts=xml.getElementsByTagName("trkpt");
 
 let latlngs=[];
 let elevations=[];
+let distances=[];
 
-for(let i=0;i<pts.length;i++){
-
-let lat=parseFloat(pts[i].getAttribute("lat"));
-let lon=parseFloat(pts[i].getAttribute("lon"));
-
-let ele=pts[i].getElementsByTagName("ele")[0];
-let elev=ele?parseFloat(ele.textContent):0;
-
-latlngs.push([lat,lon]);
-elevations.push(elev);
-
-}
-
-const poly=L.polyline(latlngs,{color:'red'}).addTo(map);
-
-map.fitBounds(poly.getBounds());
-
-/* distanza */
-
-let dist=0;
+let totalDist=0;
 
 function hav(a,b){
 
@@ -244,35 +235,104 @@ return R*c;
 
 }
 
-for(let i=1;i<latlngs.length;i++){
-dist+=hav(latlngs[i-1],latlngs[i]);
+for(let i=0;i<pts.length;i++){
+
+let lat=parseFloat(pts[i].getAttribute("lat"));
+let lon=parseFloat(pts[i].getAttribute("lon"));
+
+let ele=pts[i].getElementsByTagName("ele")[0];
+let elev=ele?parseFloat(ele.textContent):0;
+
+latlngs.push([lat,lon]);
+elevations.push(elev);
+
+if(i>0){
+totalDist+=hav(latlngs[i-1],latlngs[i]);
 }
 
-document.getElementById("dist").innerHTML=dist.toFixed(1)+" km";
+distances.push(totalDist);
 
-/* grafico altimetria */
+}
 
-new Chart(document.getElementById("elevationChart"),{
+/* linea percorso */
+
+const poly=L.polyline(latlngs,{color:'red'}).addTo(map);
+
+map.fitBounds(poly.getBounds());
+
+/* marker partenza arrivo */
+
+L.marker(latlngs[0]).addTo(map).bindPopup("Partenza");
+
+L.marker(latlngs[latlngs.length-1]).addTo(map).bindPopup("Arrivo");
+
+/* marker dinamico */
+
+const hoverMarker=L.circleMarker(latlngs[0],{
+radius:6,
+color:"blue",
+fillColor:"blue",
+fillOpacity:1
+}).addTo(map);
+
+/* distanza totale */
+
+document.getElementById("dist").innerHTML=totalDist.toFixed(1)+" km";
+
+/* quota massima */
+
+let max=Math.max(...elevations);
+
+document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
+
+/* grafico altimetrico */
+
+const chart=new Chart(document.getElementById("elevationChart"),{
 
 type:"line",
 
 data:{
-labels:elevations.map((_,i)=>i),
+labels:distances.map(d=>d.toFixed(1)),
 datasets:[{
 data:elevations,
 fill:true,
-tension:0.1
+tension:0.2
 }]
 },
 
 options:{
+
 plugins:{legend:{display:false}},
-scales:{x:{display:false}}
+
+interaction:{
+mode:'index',
+intersect:false
+},
+
+scales:{
+x:{title:{display:true,text:"Distanza (km)"}},
+y:{title:{display:true,text:"Quota (m)"}}
+},
+
+onHover:(event,elements)=>{
+
+if(elements.length>0){
+
+let i=elements[0].index;
+
+hoverMarker.setLatLng(latlngs[i]);
+
+}
+
+}
+
 }
 
 });
 
 });
+
+</script>
 
 </script>
 
