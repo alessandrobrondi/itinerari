@@ -14,7 +14,7 @@ c<!DOCTYPE html>
 
 body{
 font-family:'Inter',Arial;
-background:#d9d1c7 url("sfondo.jpg") repeat;
+background:#d9d1c7 url("../img/sfondo.jpg") repeat;
 margin:0;
 color:#222;
 }
@@ -163,11 +163,11 @@ color:white;
 
 <div class="buttons">
 
-<a href="adelasia.gpx" class="btn download">
+<a href="../gpx/adelasia.gpx" class="btn download">
 ⬇️ Scarica GPX
 </a>
 
-<a href="itinerari.html" class="btn back">
+<a href="../itinerari.html" class="btn back">
 ← Torna agli itinerari
 </a>
 
@@ -192,7 +192,7 @@ L.tileLayer(
 {attribution:'© OpenStreetMap'}
 ).addTo(map);
 
-fetch("adelasia.gpx")
+fetch("../gpx/adelasia.gpx")
 
 .then(r=>r.text())
 
