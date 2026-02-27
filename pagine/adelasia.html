@@ -123,9 +123,7 @@ color:white;
 <h2>Altare – Cascina Miera – Ora Illegale + Tanazza + Castoro - Loc.Chiappa - Celtico + President Express - Ferrania - Altare</h2>
 
 <div class="descrizione">
-
 <p>Tutte le migliori discese nel Parco dell'Adelasia con partenza ed arrivo ad Altare (consigliata eBike)</p>
-
 </div>
 
 <div class="stats">
@@ -158,13 +156,8 @@ color:white;
 
 <div class="buttons">
 
-<a href="../gpx/adelasia.gpx" class="btn download">
-⬇️ Scarica GPX
-</a>
-
-<a href="../itinerari.html" class="btn back">
-← Torna agli itinerari
-</a>
+<a href="../gpx/adelasia.gpx" class="btn download">⬇️ Scarica GPX</a>
+<a href="../itinerari.html" class="btn back">← Torna agli itinerari</a>
 
 </div>
 
@@ -175,7 +168,7 @@ color:white;
 
 <script>
 
-const map=L.map('map');
+const map = L.map('map');
 
 L.tileLayer(
 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -184,140 +177,107 @@ L.tileLayer(
 
 fetch("../gpx/adelasia.gpx")
 .then(r=>{
-if(!r.ok) throw new Error("GPX non trovato");
-return r.text();
+    if(!r.ok) throw new Error("GPX non trovato");
+    return r.text();
 })
 .then(gpx=>{
 
-const parser = new DOMParser();
-const xml = parser.parseFromString(gpx,"text/xml");
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(gpx,"text/xml");
+    const pts = xml.querySelectorAll("trkpt");
 
-const pts = xml.querySelectorAll("trkpt");
+    console.log("punti GPX:", pts.length);
 
-console.log("punti GPX:", pts.length);
+    if(pts.length === 0){
+        console.error("GPX vuoto o non valido");
+        return;
+    }
 
-let latlngs=[];
-let elevations=[];
-let distances=[];
+    let latlngs = [];
+    let elevations = [];
+    let distances = [];
+    let totalDist = 0;
 
-let totalDist=0;
+    function hav(a,b){
+        const R=6371;
+        const dLat=(b[0]-a[0])*Math.PI/180;
+        const dLon=(b[1]-a[1])*Math.PI/180;
+        const lat1=a[0]*Math.PI/180;
+        const lat2=b[0]*Math.PI/180;
+        const x=Math.sin(dLat/2)**2 +
+                Math.sin(dLon/2)**2*Math.cos(lat1)*Math.cos(lat2);
+        const c=2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+        return R*c;
+    }
 
-function hav(a,b){
+    for(let i=0;i<pts.length;i++){
+        let lat = parseFloat(pts[i].getAttribute("lat"));
+        let lon = parseFloat(pts[i].getAttribute("lon"));
+        let eleEl = pts[i].getElementsByTagName("ele")[0];
+        let elev = eleEl ? parseFloat(eleEl.textContent) : 0;
 
-const R=6371;
+        latlngs.push([lat,lon]);
+        elevations.push(elev);
 
-const dLat=(b[0]-a[0])*Math.PI/180;
-const dLon=(b[1]-a[1])*Math.PI/180;
+        if(i>0) totalDist += hav(latlngs[i-1], latlngs[i]);
+        distances.push(totalDist);
+    }
 
-const lat1=a[0]*Math.PI/180;
-const lat2=b[0]*Math.PI/180;
+    const poly = L.polyline(latlngs, {color:'red'}).addTo(map);
+    map.fitBounds(poly.getBounds());
 
-const x=Math.sin(dLat/2)**2+
-Math.sin(dLon/2)**2*Math.cos(lat1)*Math.cos(lat2);
+    L.marker(latlngs[0]).addTo(map).bindPopup("Partenza");
+    L.marker(latlngs[latlngs.length-1]).addTo(map).bindPopup("Arrivo");
 
-const c=2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    const hoverMarker = L.circleMarker(latlngs[0],{
+        radius:6,
+        color:"blue",
+        fillColor:"blue",
+        fillOpacity:1
+    }).addTo(map);
 
-return R*c;
+    document.getElementById("dist").innerHTML = totalDist.toFixed(1) + " km";
 
-}
+    let max = Math.max(...elevations);
+    document.getElementById("quotaMax").innerHTML = Math.round(max) + " m";
 
-for(let i=0;i<pts.length;i++){
+    let gain = 0;
+    const soglia = 1;
+    for (let i = 1; i < elevations.length; i++){
+        let diff = elevations[i] - elevations[i-1];
+        if(diff > soglia) gain += diff;
+    }
+    document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
 
-let lat=parseFloat(pts[i].getAttribute("lat"));
-let lon=parseFloat(pts[i].getAttribute("lon"));
+    const chart = new Chart(document.getElementById("elevationChart"), {
+        type: "line",
+        data: {
+            labels: distances.map(d=>d.toFixed(1)),
+            datasets:[{
+                data: elevations,
+                fill:true,
+                tension:0.2
+            }]
+        },
+        options:{
+            plugins:{legend:{display:false}},
+            interaction:{mode:'index',intersect:false},
+            scales:{
+                x:{title:{display:true,text:"Distanza (km)"}},
+                y:{title:{display:true,text:"Quota (m)"}}
+            },
+            onHover:(event,elements)=>{
+                if(elements.length>0){
+                    let i=elements[0].index;
+                    hoverMarker.setLatLng(latlngs[i]);
+                }
+            }
+        }
+    });
 
-let ele=pts[i].getElementsByTagName("ele")[0];
-let elev=ele?parseFloat(ele.textContent):0;
-
-latlngs.push([lat,lon]);
-elevations.push(elev);
-
-if(i>0){
-totalDist+=hav(latlngs[i-1],latlngs[i]);
-}
-
-distances.push(totalDist);
-
-}
-
-const poly=L.polyline(latlngs,{color:'red'}).addTo(map);
-
-map.fitBounds(poly.getBounds());
-
-L.marker(latlngs[0]).addTo(map).bindPopup("Partenza");
-L.marker(latlngs[latlngs.length-1]).addTo(map).bindPopup("Arrivo");
-
-const hoverMarker=L.circleMarker(latlngs[0],{
-radius:6,
-color:"blue",
-fillColor:"blue",
-fillOpacity:1
-}).addTo(map);
-
-document.getElementById("dist").innerHTML=totalDist.toFixed(1)+" km";
-
-let max=Math.max(...elevations);
-
-document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
-
-let gain = 0;
-const soglia = 0;
-
-for (let i = 1; i < elevations.length; i++) {
-
-let diff = elevations[i] - elevations[i-1];
-
-if (diff > soglia) {
-gain += diff;
-}
-
-}
-
-document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
-
-const chart=new Chart(document.getElementById("elevationChart"),{
-
-type:"line",
-
-data:{
-labels:distances.map(d=>d.toFixed(1)),
-datasets:[{
-data:elevations,
-fill:true,
-tension:0.2
-}]
-},
-
-options:{
-
-plugins:{legend:{display:false}},
-
-interaction:{
-mode:'index',
-intersect:false
-},
-
-scales:{
-x:{title:{display:true,text:"Distanza (km)"}},
-y:{title:{display:true,text:"Quota (m)"}}
-},
-
-onHover:(event,elements)=>{
-
-if(elements.length>0){
-
-let i=elements[0].index;
-
-hoverMarker.setLatLng(latlngs[i]);
-
-}
-
-}
-
-}
-
-});
-
+})
+.catch(err=>{
+    console.error("Errore fetch GPX:", err);
 });
 
 </script>
