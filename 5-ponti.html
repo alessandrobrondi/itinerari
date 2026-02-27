@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: #d9d1c7 url("../sfondo.jpg") repeat;
+      background: #d9d1c7 url("sfondo.jpg") repeat;
       margin: 0;
       color: #222;
     }
@@ -121,8 +121,85 @@
       text-align: center;
       margin-top: 40px;
     }
+	
+	.elevation-box {
+	  margin: 40px 0;
+	}
+
+	canvas {
+	  background: #fff;
+	  border-radius: 10px;
+	  padding: 10px;
+	  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+	}
   </style>
 </head>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+fetch("Colle_Termine_5_Ponti.gpx")
+  .then(response => response.text())
+  .then(str => {
+
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(str, "text/xml");
+    const points = xml.getElementsByTagName("trkpt");
+
+    let elevations = [];
+    let distances = [];
+    let totalDistance = 0;
+
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI/180;
+      const dLon = (lon2 - lon1) * Math.PI/180;
+      const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1*Math.PI/180) *
+        Math.cos(lat2*Math.PI/180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    for (let i = 0; i < points.length; i++) {
+
+      const ele = points[i].getElementsByTagName("ele")[0];
+      if (ele) elevations.push(parseFloat(ele.textContent));
+
+      if (i > 0) {
+        const lat1 = parseFloat(points[i-1].getAttribute("lat"));
+        const lon1 = parseFloat(points[i-1].getAttribute("lon"));
+        const lat2 = parseFloat(points[i].getAttribute("lat"));
+        const lon2 = parseFloat(points[i].getAttribute("lon"));
+        totalDistance += haversine(lat1, lon1, lat2, lon2);
+      }
+
+      distances.push(totalDistance.toFixed(2));
+    }
+
+    new Chart(document.getElementById("elevationChart"), {
+      type: "line",
+      data: {
+        labels: distances,
+        datasets: [{
+          data: elevations,
+          fill: true,
+          tension: 0.2
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "Distanza (km)" }},
+          y: { title: { display: true, text: "Altitudine (m)" }}
+        }
+      }
+    });
+
+  });
+</script>
 
 <body>
   <div class="container">
@@ -163,13 +240,13 @@
         allowfullscreen>
       </iframe>
 
-      <p style="margin-top:10px;">
+      <!--<p style="margin-top:10px;">
         <a href="https://umap.openstreetmap.fr/it/map/colle-termine-5-ponti_1366452"
            target="_blank"
            class="btn btn-blue">
            📍 Visualizza a schermo intero
         </a>
-      </p>
+      </p>-->
     </div>
 
     <!-- 🔹 DOWNLOAD GPX -->
@@ -177,7 +254,17 @@
       <a href="Colle_Termine_5_Ponti.zip" class="btn btn-orange" download>
         ⬇️ Scarica la traccia GPX
       </a>
+	  <a href="https://umap.openstreetmap.fr/it/map/colle-termine-5-ponti_1366452"
+           target="_blank"
+           class="btn btn-blue">
+           📍 Visualizza a schermo intero
+       </a>
     </div>
+	
+	<div class="elevation-box">
+	  <h3 style="text-align:center;color:#5b4b34;">Profilo Altimetrico</h3>
+	  <canvas id="elevationChart"></canvas>
+	</div>
 
     <div class="back">
       <a href="itinerari.html" class="btn btn-green">
