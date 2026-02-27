@@ -189,10 +189,12 @@ return r.text();
 })
 .then(gpx=>{
 
-const parser=new DOMParser();
-const xml=parser.parseFromString(gpx,"text/xml");
+const parser = new DOMParser();
+const xml = parser.parseFromString(gpx,"text/xml");
 
-const pts=xml.getElementsByTagName("trkpt");
+const pts = xml.querySelectorAll("trkpt");
+
+console.log("punti GPX:", pts.length);
 
 let latlngs=[];
 let elevations=[];
