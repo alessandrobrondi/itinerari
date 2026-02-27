@@ -242,7 +242,7 @@ fetch("../gpx/adelasia.gpx")
     document.getElementById("quotaMax").innerHTML = Math.round(max) + " m";
 
     let gain = 0;
-    const soglia = 1;
+    const soglia = 0;
     for (let i = 1; i < elevations.length; i++){
         let diff = elevations[i] - elevations[i-1];
         if(diff > soglia) gain += diff;
