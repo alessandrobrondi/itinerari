@@ -182,7 +182,7 @@ L.tileLayer(
 {attribution:'© OpenStreetMap'}
 ).addTo(map);
 
-fetch("/itinerari/gpx/adelasia.gpx")
+fetch("../gpx/adelasia.gpx")
 .then(r=>{
 if(!r.ok) throw new Error("GPX non trovato");
 return r.text();
@@ -261,7 +261,7 @@ let max=Math.max(...elevations);
 document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
 
 let gain = 0;
-const soglia = 0.5;
+const soglia = 1;
 
 for (let i = 1; i < elevations.length; i++) {
 
