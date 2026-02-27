@@ -6,7 +6,7 @@ c<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Colla del Baraccone | Itinerari MTB</title>
+<title>Tutti i trails dell'Adelasia | Itinerari MTB</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -122,19 +122,14 @@ color:white;
 
 <div class="container">
 
-<h1>Colla del Baraccone ( Percorso NOTTELONGA 2004 )</h1>
+<h1>Tutti i trails dell'Adelasia</h1>
 
-<h2>Altare – Monte Burot – Colla del Baraccone - Loc. Nuxetta - Strada Roviasca - Altare</h2>
+<h2>Altare – Cascina Miera – Ora Illegale + Tanazza + Castoro - Loc.Chiappa - Celtico + President Express - Ferrania - Altare</h2>
 
 <div class="descrizione">
 
 <p>
-	<p>Il percorso illustrato in questo servizio è stato utilizzato nella Nottelonga, manifestazione notturna tenutasi il 18 dicembre 2004, con partenza ed arrivo ad Altare.</p>
-	<p>Si parte da piazza Vittorio Veneto, dove è agevole parcheggiare l’auto. Si imbocca la strada statale in direzione Savona che si segue su asfalto sino al Km 1.1, quando è necessario svoltare a destra in salita poco prima di un semaforo che regola l'accesso ad una galleria. Abbiamo imboccato l'Alta Via dei Monti Liguri (segnaletica “AV”) e inizia a questo punto la salita che dopo alcune centinaia di metri diventa sterrata. Al km 2.5 in prossimità di un bivio presso una cava si tiene la destra e seguendo sempre la strada principale si continua a salire fino al km 4.8 quando in corrispondenza di un metanodotto si svolta verso destra.</p>
-	<p>Seguendo sempre il segnale AV dopo circa un km si entra nel bosco e si giunge sul crinale della vetta del Monte Baraccone fino al km 6.8 dove occorre prestare attenzione in quanto è necessario  abbandonare l'Alta Via che piega a destra in discesa per proseguire diritti su un tecnico sentiero che inizia dopo pochi metri a scendere. .Percorsi circa 400 m il sentiero riporta nuovamente sull'Alta Via che si imbocca verso sinistra continuando a scendere sino a incontrare una larga strada carrabile al km 7.6. La carrabile viene presa verso sinistra in discesa sino al km 9.1 presso la cascina Nuxetta.</p>
-	<p>Si sale seguendo la traccia principale fino al km 15.9 fino alla cava e al bivio incontrato precedentemente. Si prende a sinistra ripercorrendo per 300 m il tratto percorso in precedenza, quando nei pressi di un tornante presso la vasca dell'acquedotto si gira a destra in discesa nel bosco. Si incontrano 2 bivi e in entrambi i casi si piega a sinistra (attenzione alla ghiaia). Si trascurano i successivi bivi fino al km 17.3 dove presso la cascina "La Vera" si svolta a sinistra imboccando una sterrata che in breve si trasforma in cementata e in asfaltata poche decine di metri prima di ritrovarsi in Piazza Vittorio Veneto di Altare, punto di partenza dell'itinerario.</p>
-</p>
-
+	<p>Tutte le migliori discesa nel Parco dell'Adelasia con partenza ed arrivo ad Altare (consigliata eBike)</p>
 </div>
 
 <div class="stats">
@@ -145,7 +140,8 @@ color:white;
 </div>
 
 <div class="stat">
-<div class="value">600 m</div>
+<!--div class="value">1000 m</div>-->
+<div class="value" id="dislivello">--</div>
 <div class="label">Dislivello +</div>
 </div>
 
@@ -155,7 +151,7 @@ color:white;
 </div>
 
 <div class="stat">
-<div class="value">1h45</div>
+<div class="value">3h30</div>
 <div class="label">Tempo</div>
 </div>
 
@@ -167,7 +163,7 @@ color:white;
 
 <div class="buttons">
 
-<a href="baraccone.gpx" class="btn download">
+<a href="adelasia.gpx" class="btn download">
 ⬇️ Scarica GPX
 </a>
 
@@ -196,7 +192,7 @@ L.tileLayer(
 {attribution:'© OpenStreetMap'}
 ).addTo(map);
 
-fetch("baraccone.gpx")
+fetch("adelasia.gpx")
 
 .then(r=>r.text())
 
@@ -281,6 +277,23 @@ document.getElementById("dist").innerHTML=totalDist.toFixed(1)+" km";
 let max=Math.max(...elevations);
 
 document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
+
+/* calcolo dislivello positivo con filtro */
+
+let gain = 0;
+const soglia = 2;   // ignora variazioni minori di 5 metri
+
+for (let i = 1; i < elevations.length; i++) {
+
+let diff = elevations[i] - elevations[i-1];
+
+if (diff > soglia) {
+gain += diff;
+}
+
+}
+
+document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
 
 /* grafico altimetrico */
 
