@@ -1,4 +1,4 @@
-c<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 
 <head>
@@ -52,21 +52,17 @@ text-align:justify;
 }
 
 .stats{
-
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:15px;
 margin-bottom:25px;
-
 }
 
 .stat{
-
 background:#f3eee6;
 padding:15px;
 border-radius:8px;
 text-align:center;
-
 }
 
 .value{
@@ -128,8 +124,8 @@ color:white;
 
 <div class="descrizione">
 
-<p>
-	<p>Tutte le migliori discese nel Parco dell'Adelasia con partenza ed arrivo ad Altare (consigliata eBike)</p>
+<p>Tutte le migliori discese nel Parco dell'Adelasia con partenza ed arrivo ad Altare (consigliata eBike)</p>
+
 </div>
 
 <div class="stats">
@@ -140,7 +136,6 @@ color:white;
 </div>
 
 <div class="stat">
-<!--div class="value">1000 m</div>-->
 <div class="value" id="dislivello">--</div>
 <div class="label">Dislivello +</div>
 </div>
@@ -174,11 +169,6 @@ color:white;
 </div>
 
 </div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -247,19 +237,12 @@ distances.push(totalDist);
 
 }
 
-/* linea percorso */
-
 const poly=L.polyline(latlngs,{color:'red'}).addTo(map);
 
 map.fitBounds(poly.getBounds());
 
-/* marker partenza arrivo */
-
 L.marker(latlngs[0]).addTo(map).bindPopup("Partenza");
-
 L.marker(latlngs[latlngs.length-1]).addTo(map).bindPopup("Arrivo");
-
-/* marker dinamico */
 
 const hoverMarker=L.circleMarker(latlngs[0],{
 radius:6,
@@ -268,20 +251,14 @@ fillColor:"blue",
 fillOpacity:1
 }).addTo(map);
 
-/* distanza totale */
-
 document.getElementById("dist").innerHTML=totalDist.toFixed(1)+" km";
-
-/* quota massima */
 
 let max=Math.max(...elevations);
 
 document.getElementById("quotaMax").innerHTML=Math.round(max)+" m";
 
-/* calcolo dislivello positivo con filtro */
-
 let gain = 0;
-const soglia = 0,5;   // ignora variazioni minori di 5 metri
+const soglia = 0.5;
 
 for (let i = 1; i < elevations.length; i++) {
 
@@ -294,8 +271,6 @@ gain += diff;
 }
 
 document.getElementById("dislivello").innerHTML = Math.round(gain) + " m";
-
-/* grafico altimetrico */
 
 const chart=new Chart(document.getElementById("elevationChart"),{
 
@@ -341,8 +316,6 @@ hoverMarker.setLatLng(latlngs[i]);
 });
 
 });
-
-</script>
 
 </script>
 
