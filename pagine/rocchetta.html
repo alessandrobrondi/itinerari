@@ -1,4 +1,4 @@
-c<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 
 <head>
@@ -163,7 +163,7 @@ color:white;
 
 <div class="buttons">
 
-<a href="../gpx/basenato.gpx" class="btn download">⬇️ Scarica GPX</a>
+<a href="../gpx/rocchetta.gpx" class="btn download">⬇️ Scarica GPX</a>
 <a href="../itinerari.html" class="btn back">← Torna agli itinerari</a>
 
 </div>
@@ -182,7 +182,7 @@ L.tileLayer(
 {attribution:'© OpenStreetMap'}
 ).addTo(map);
 
-fetch("../gpx/basenato.gpx")
+fetch("../gpx/rocchetta.gpx")
 .then(r=>{
     if(!r.ok) throw new Error("GPX non trovato");
     return r.text();
